@@ -2,6 +2,7 @@
 #define ELF_DATA_H_GUARD_DA228AC2_D595_40A5_8E0C_465FB43CD438
 
 #include <vector>
+#include <string>
 #include <cstdint>
 #include "file_data.h"
 
@@ -14,6 +15,22 @@ struct program_header_data {
 	uint64_t p_memsz;
 	uint32_t p_flags;
 	uint64_t p_align;
+	std::vector<uint8_t> data;
+};
+
+struct section_header_data {
+	uint32_t sh_name;
+	uint32_t sh_type;
+	uint64_t sh_flags;
+	uint64_t sh_addr;
+	uint64_t sh_offset;
+	uint64_t sh_size;
+	uint32_t sh_link;
+	uint32_t sh_info;
+	uint32_t sh_addralign;
+	uint64_t sh_entsize;
+
+	std::string name;
 	std::vector<uint8_t> data;
 };
 
@@ -37,6 +54,7 @@ struct elf_data {
 	uint16_t e_shstrndx;
 
 	std::vector<program_header_data> ph;
+	std::vector<section_header_data> sh;
 
 	static elf_data read_elf(const file_data& data);
 };

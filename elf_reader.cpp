@@ -63,5 +63,22 @@ int main(int argc, char* argv[]) {
 		std::cout << std::dec;
 	}
 
+	std::cout << "\n----------------- section headers -----------------\n";
+	for (size_t i = 0; i < elf.sh.size(); i++) {
+		std::cout << "\n----- sh[" << i << "] -----\n";
+		std::cout << std::hex;
+		std::cout << "sh_name      : 0x" << elf.sh[i].sh_name << " (" << elf.sh[i].name << ")\n";
+		std::cout << "sh_type      : 0x" << elf.sh[i].sh_type << '\n';
+		std::cout << "sh_flags     : 0x" << elf.sh[i].sh_flags << '\n';
+		std::cout << "sh_addr      : 0x" << elf.sh[i].sh_addr << '\n';
+		std::cout << "sh_offset    : 0x" << elf.sh[i].sh_offset << '\n';
+		std::cout << "sh_size      : 0x" << elf.sh[i].sh_size << '\n';
+		std::cout << "sh_link      : 0x" << elf.sh[i].sh_link << '\n';
+		std::cout << "sh_info      : 0x" << elf.sh[i].sh_info << '\n';
+		std::cout << "sh_addralign : 0x" << elf.sh[i].sh_addralign << '\n';
+		std::cout << "sh_entsize   : 0x" << elf.sh[i].sh_entsize << '\n';
+		std::cout << std::dec;
+	}
+
 	return 0;
 }

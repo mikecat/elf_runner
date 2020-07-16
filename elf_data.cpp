@@ -75,6 +75,48 @@ elf_data elf_data::read_elf(const file_data& data) {
 			data.get_bytes(&entry.data[0], entry.p_offset, entry.p_filesz);
 			result.ph.push_back(entry);
 		}
+
+		if (result.e_shentsize < (result.e_ident_class == 64 ? 64 : 40)) {
+			throw std::runtime_error("section header too small");
+		}
+		for (uint16_t i = 0; i < result.e_shnum; i++) {
+			size_t entry_offset = result.e_shoff + static_cast<size_t>(i) * result.e_shentsize;
+			section_header_data entry;
+			entry.sh_name = data.get_u32(entry_offset, result.e_ident_data);
+			entry.sh_type = data.get_u32(entry_offset + 0x04, result.e_ident_data);
+			if (result.e_ident_class == 64) {
+				entry.sh_flags = data.get_u64(entry_offset + 0x08, result.e_ident_data);
+				entry.sh_addr = data.get_u64(entry_offset + 0x10, result.e_ident_data);
+				entry.sh_offset = data.get_u64(entry_offset + 0x18, result.e_ident_data);
+				entry.sh_size = data.get_u64(entry_offset + 0x20, result.e_ident_data);
+				entry.sh_link = data.get_u32(entry_offset + 0x28, result.e_ident_data);
+				entry.sh_info = data.get_u32(entry_offset + 0x2C, result.e_ident_data);
+				entry.sh_addralign = data.get_u32(entry_offset + 0x30, result.e_ident_data);
+				entry.sh_entsize = data.get_u64(entry_offset + 0x38, result.e_ident_data);
+			} else {
+				entry.sh_flags = data.get_u32(entry_offset + 0x08, result.e_ident_data);
+				entry.sh_addr = data.get_u32(entry_offset + 0x0C, result.e_ident_data);
+				entry.sh_offset = data.get_u32(entry_offset + 0x10, result.e_ident_data);
+				entry.sh_size = data.get_u32(entry_offset + 0x14, result.e_ident_data);
+				entry.sh_link = data.get_u32(entry_offset + 0x18, result.e_ident_data);
+				entry.sh_info = data.get_u32(entry_offset + 0x1C, result.e_ident_data);
+				entry.sh_addralign = data.get_u32(entry_offset + 0x20, result.e_ident_data);
+				entry.sh_entsize = data.get_u32(entry_offset + 0x24, result.e_ident_data);
+			}
+			if (entry.sh_type != 8) { // SHT_NOBITS
+				entry.data.resize(entry.sh_size);
+				data.get_bytes(&entry.data[0], entry.sh_offset, entry.sh_size);
+			}
+			result.sh.push_back(entry);
+		}
+		if (result.sh.size() > result.e_shstrndx) {
+			const std::vector<uint8_t>& names = result.sh[result.e_shstrndx].data;
+			for (section_header_data& entry : result.sh) {
+				for (size_t pos = entry.sh_name; pos < names.size() && names[pos] != 0; pos++) {
+					entry.name += static_cast<char>(names[pos]);
+				}
+			}
+		}
 	} catch (std::out_of_range&) {
 		throw std::runtime_error("file too small");
 	}
