@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <map>
 #include "file_data.h"
 #include "elf_data.h"
 
@@ -9,6 +10,50 @@ std::string get_byte_order(byte_order bo) {
 		case BO_LITTLE_ENDIAN: return "BO_LITTLE_ENDIAN";
 		case BO_BIG_ENDIAN: return "BO_BIG_ENDIAN";
 		default: return "(unknown)";
+	}
+}
+
+std::string get_ph_type_name(uint32_t type) {
+	static const std::map<uint32_t, std::string> table = {
+		{0, "PT_NULL"},
+		{1, "PT_LOAD"},
+		{2, "PT_DYNAMIC"},
+		{3, "PT_INTERP"},
+		{5, "PT_SHLIB"},
+		{6, "PT_PHDR"}
+	};
+	std::map<uint32_t, std::string>::const_iterator it = table.find(type);
+	if (it != table.end()) {
+		return std::string(" (") + it->second + ")";
+	} else {
+		return "";
+	}
+}
+
+std::string get_sh_type_name(uint32_t type) {
+	static const std::map<uint32_t, std::string> table = {
+		{0, "SHT_NULL"},
+		{1, "SHT_PROGBITS"},
+		{2, "SHT_SYMTAB"},
+		{3, "SHT_STRTAB"},
+		{4, "SHT_RELA"},
+		{5, "SHT_HASH"},
+		{6, "SHT_DYNAMIC"},
+		{7, "SHT_NOTE"},
+		{8, "SHT_NOBITS"},
+		{9, "SHT_REL"},
+		{10, "SHT_SHLIB"},
+		{11, "SHT_DYNSYM"}
+	};
+	std::map<uint32_t, std::string>::const_iterator it = table.find(type);
+	if (it != table.end()) {
+		return std::string(" (") + it->second + ")";
+	} else if (UINT32_C(0x70000000) <= type && type <= UINT32_C(0x7FFFFFFF)) {
+		return " (SHT_LOPROC - SHT_HIPROC)";
+	} else if (UINT32_C(0x80000000) <= type && type <= UINT32_C(0x8FFFFFFF)) {
+		return " (SHT_LOUSER - SHT_HIUSER)";
+	} else {
+		return "";
 	}
 }
 
@@ -52,7 +97,7 @@ int main(int argc, char* argv[]) {
 	for (size_t i = 0; i < elf.ph.size(); i++) {
 		std::cout << "\n----- ph[" << i << "] -----\n";
 		std::cout << std::hex;
-		std::cout << "p_type   : 0x" << elf.ph[i].p_type << '\n';
+		std::cout << "p_type   : 0x" << elf.ph[i].p_type << get_ph_type_name(elf.ph[i].p_type) << '\n';
 		std::cout << "p_offset : 0x" << elf.ph[i].p_offset << '\n';
 		std::cout << "p_vaddr  : 0x" << elf.ph[i].p_vaddr << '\n';
 		std::cout << "p_paddr  : 0x" << elf.ph[i].p_paddr << '\n';
@@ -68,7 +113,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "\n----- sh[" << i << "] -----\n";
 		std::cout << std::hex;
 		std::cout << "sh_name      : 0x" << elf.sh[i].sh_name << " (" << elf.sh[i].name << ")\n";
-		std::cout << "sh_type      : 0x" << elf.sh[i].sh_type << '\n';
+		std::cout << "sh_type      : 0x" << elf.sh[i].sh_type << get_sh_type_name(elf.sh[i].sh_type) << '\n';
 		std::cout << "sh_flags     : 0x" << elf.sh[i].sh_flags << '\n';
 		std::cout << "sh_addr      : 0x" << elf.sh[i].sh_addr << '\n';
 		std::cout << "sh_offset    : 0x" << elf.sh[i].sh_offset << '\n';
