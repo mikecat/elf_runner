@@ -47,6 +47,21 @@ int main(int argc, char* argv[]) {
 	std::cout << "e_shentsize : " << elf.e_shentsize << '\n';
 	std::cout << "e_shnum     : " << elf.e_shnum << '\n';
 	std::cout << "e_shstrndx  : " << elf.e_shstrndx << '\n';
-	
+
+	std::cout << "\n----------------- program headers -----------------\n";
+	for (size_t i = 0; i < elf.ph.size(); i++) {
+		std::cout << "\n----- ph[" << i << "] -----\n";
+		std::cout << std::hex;
+		std::cout << "p_type   : 0x" << elf.ph[i].p_type << '\n';
+		std::cout << "p_offset : 0x" << elf.ph[i].p_offset << '\n';
+		std::cout << "p_vaddr  : 0x" << elf.ph[i].p_vaddr << '\n';
+		std::cout << "p_paddr  : 0x" << elf.ph[i].p_paddr << '\n';
+		std::cout << "p_filesz : 0x" << elf.ph[i].p_filesz << '\n';
+		std::cout << "p_memsz  : 0x" << elf.ph[i].p_memsz << '\n';
+		std::cout << "p_flags  : 0x" << elf.ph[i].p_flags << '\n';
+		std::cout << "p_align  : 0x" << elf.ph[i].p_align << '\n';
+		std::cout << std::dec;
+	}
+
 	return 0;
 }

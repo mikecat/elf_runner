@@ -46,6 +46,35 @@ elf_data elf_data::read_elf(const file_data& data) {
 		result.e_shentsize = data.get_u16(e_flags_offset + 10, result.e_ident_data);
 		result.e_shnum = data.get_u16(e_flags_offset + 12, result.e_ident_data);
 		result.e_shstrndx = data.get_u16(e_flags_offset + 14, result.e_ident_data);
+
+		if (result.e_phentsize < (result.e_ident_class == 64 ? 56 : 32)) {
+			throw std::runtime_error("program header too small");
+		}
+		for (uint16_t i = 0; i < result.e_phnum; i++) {
+			size_t entry_offset = result.e_phoff + static_cast<size_t>(i) * result.e_phentsize;
+			program_header_data entry;
+			entry.p_type = data.get_u32(entry_offset, result.e_ident_data);
+			if (result.e_ident_class == 64) {
+				entry.p_offset = data.get_u64(entry_offset + 0x08, result.e_ident_data);
+				entry.p_vaddr = data.get_u64(entry_offset + 0x10, result.e_ident_data);
+				entry.p_paddr = data.get_u64(entry_offset + 0x18, result.e_ident_data);
+				entry.p_filesz = data.get_u64(entry_offset + 0x20, result.e_ident_data);
+				entry.p_memsz = data.get_u64(entry_offset + 0x28, result.e_ident_data);
+				entry.p_flags = data.get_u32(entry_offset + 0x04, result.e_ident_data);
+				entry.p_align = data.get_u64(entry_offset + 0x30, result.e_ident_data);
+			} else {
+				entry.p_offset = data.get_u32(entry_offset + 0x04, result.e_ident_data);
+				entry.p_vaddr = data.get_u32(entry_offset + 0x08, result.e_ident_data);
+				entry.p_paddr = data.get_u32(entry_offset + 0x0C, result.e_ident_data);
+				entry.p_filesz = data.get_u32(entry_offset + 0x10, result.e_ident_data);
+				entry.p_memsz = data.get_u32(entry_offset + 0x14, result.e_ident_data);
+				entry.p_flags = data.get_u32(entry_offset + 0x18, result.e_ident_data);
+				entry.p_align = data.get_u32(entry_offset + 0x1C, result.e_ident_data);
+			}
+			entry.data.resize(entry.p_filesz);
+			data.get_bytes(&entry.data[0], entry.p_offset, entry.p_filesz);
+			result.ph.push_back(entry);
+		}
 	} catch (std::out_of_range&) {
 		throw std::runtime_error("file too small");
 	}

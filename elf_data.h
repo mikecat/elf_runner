@@ -5,6 +5,18 @@
 #include <cstdint>
 #include "file_data.h"
 
+struct program_header_data {
+	uint32_t p_type;
+	uint32_t p_offset;
+	uint64_t p_vaddr;
+	uint64_t p_paddr;
+	uint64_t p_filesz;
+	uint64_t p_memsz;
+	uint32_t p_flags;
+	uint64_t p_align;
+	std::vector<uint8_t> data;
+};
+
 struct elf_data {
 	int e_ident_class;
 	byte_order e_ident_data;
@@ -23,6 +35,8 @@ struct elf_data {
 	uint16_t e_shentsize;
 	uint16_t e_shnum;
 	uint16_t e_shstrndx;
+
+	std::vector<program_header_data> ph;
 
 	static elf_data read_elf(const file_data& data);
 };
